@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>丽勾生快</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+    <script src="./js/three.js"></script>
+    <script src="./js/OrbitControls.js"></script>
+</head>
+<body>
+<script>
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    //窗口宽高比
+    const k = width / height;
+    //三维场景显示范围的宽度
+    const s = 200;
+
+    const camera = new THREE.OrthographicCamera(-s * k, s * k, s, -s, 1, 1000);
+
+    const fontLoader = new THREE.FontLoader();
+
+    const scene = new THREE.Scene();
+
+    const cake = new THREE.Group();
+
+    const petal = new THREE.Group();
+
+    const renderer = new THREE.WebGLRenderer();
+
+
+    let audioCtx = new AudioContext();
+    let source, analyser;
+
+    function getData() {
+        source = audioCtx.createBufferSource();
+        analyser = audioCtx.createAnalyser();
+
+        return fetch('./audio/63771.mp3')
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error("HTTP error, status = " + response.status);
+                }
+                return response.arrayBuffer();
+            })
+            .then(function(arrayBuffer) {
+                audioCtx.decodeAudioData(arrayBuffer, function(decodedData) {
+                    source.buffer = decodedData;
+                    source.connect(analyser);
+                    analyser.connect(audioCtx.destination);
+                });
+            });
+    };
+
+    function triggerHandler() {
+        getData().then(function() {
+            source.start(0);
+            create();
+            render();
+        });
+        document.removeEventListener('mousedown', triggerHandler)
+    }
+    document.addEventListener('mousedown', triggerHandler);
+
+    function create() {
+        renderer.setSize(width, height);
+        //设置背景颜色
+        renderer.setClearColor(0xFFFFFF, 1);
+        document.body.appendChild(renderer.domElement);
+
+        camera.position.set(0, 100, 500)
+        camera.lookAt(scene.position);
+
+        const light = new THREE.AmbientLight(0xCCCCCC);
+        scene.add(light);
+
+        // const axisHelper = new THREE.AxisHelper(2500);
+        // scene.add(axisHelper);
+
+        const cakeTexture1 = new THREE.TextureLoader().load('img/ai_0.png');
+        const cakeTexture2 = new THREE.TextureLoader().load('img/ai_1.png');
+        const cakeTexture3 = new THREE.TextureLoader().load(`img/ai_2.png`);
+        const cakeTexture4 = new THREE.TextureLoader().load('img/cake4.png');
+
+        const cakeMaterail1 = new THREE.MeshBasicMaterial({map: cakeTexture1});
+        const cakeMaterail2 = new THREE.MeshBasicMaterial({map: cakeTexture2});
+        const cakeMaterail3 = new THREE.MeshBasicMaterial({map: cakeTexture3});
+        const cakeMaterail4 = new THREE.MeshBasicMaterial({map: cakeTexture4}); 
+
+        const pinkMaterial = new THREE.MeshBasicMaterial({color: 'pink'});
+
+        const cakeGeometry1 = new THREE.CylinderBufferGeometry(100, 100, 70, 40);
+        const cakePart1 = new THREE.Mesh(cakeGeometry1, [cakeMaterail1, pinkMaterial, pinkMaterial]);
+        cakePart1.translateY(45)
+ 
+        const cakeGeometry2 = new THREE.CylinderBufferGeometry(120, 120, 70, 40);
+        const cakePart2 = new THREE.Mesh(cakeGeometry2,[cakeMaterail3, pinkMaterial, pinkMaterial]);
+        cakePart2.translateY(-25)
+
+        const cakeGeometry3 = new THREE.CylinderBufferGeometry(140, 140, 60, 40);
+        const cakePart3 = new THREE.Mesh(cakeGeometry3, [cakeMaterail2, pinkMaterial, pinkMaterial]);
+        cakePart3.translateY(-90)
+
+        const cakeGeometry4 = new THREE.CylinderBufferGeometry(160, 160, 10, 40);
+        const cakePart4 = new THREE.Mesh(cakeGeometry4, [cakeMaterail4, cakeMaterail4, cakeMaterail4]);
+        cakePart4.translateY(-120)
+
+        cake.add(cakePart1)
+        cake.add(cakePart2)
+        cake.add(cakePart3)
+        cake.add(cakePart4)
+
+        fontLoader.load('./font/guang.typeface.json', function (font) {
+            var textGeometry = new THREE.TextGeometry('丽勾生快', {
+                font: font,
+                size: 30,
+                height: 5,
+                bevelEnabled: true,
+                bevelSize: 10,
+            });
+            const textMaterial = ['white', 'red'].map(color => new THREE.MeshBasicMaterial({color}));
+
+            const text = new THREE.Mesh(textGeometry, textMaterial);
+            text.translateY(90)
+            text.translateX(-80)
+            cake.add(text); 
+        });
+
+
+
+        // //设置相机位置
+        // camera.position.set(0, 200, 500)
+        // camera.lookAt(scene.position)
+    
+        // //设置渲染区域尺寸
+        // renderer.setSize(width, height)
+        // //设置背景颜色
+        // renderer.setClearColor(0xFFFFFF, 1)
+        //body元素中插入canvas对象
+        // document.body.appendChild(renderer.domElement)
+
+        // const axisHelper = new THREE.AxisHelper(1000);
+        // scene.add(axisHelper)
+
+        var flowerTexture1 = new THREE.TextureLoader().load("img/flower1.png");
+        var flowerTexture2 = new THREE.TextureLoader().load("img/flower2.png");
+        var flowerTexture3 = new THREE.TextureLoader().load("img/flower3.png");
+        var flowerTexture4 = new THREE.TextureLoader().load("img/flower4.png");
+        var flowerTexture5 = new THREE.TextureLoader().load("img/flower5.png");
+        var imageList = [flowerTexture1, flowerTexture2, flowerTexture3, flowerTexture4, flowerTexture5];
+
+        for (let i = 0; i < 400; i++) {
+            var spriteMaterial = new THREE.SpriteMaterial({
+                map: imageList[Math.floor(Math.random() * imageList.length)],//设置精灵纹理贴图
+            });
+            var sprite = new THREE.Sprite(spriteMaterial);
+            petal.add(sprite);
+
+            sprite.scale.set(40, 50, 1); 
+            sprite.position.set(2000 * (Math.random() - 0.5), 500 * Math.random(), 2000 * (Math.random() - 0.5))
+        }
+        scene.add(petal);
+        scene.add(cake);
+    }
+
+
+    function render() {
+        const frequencyData = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(frequencyData);
+
+        cake.rotation.y += 0.005;
+
+        petal.children.forEach(sprite => {
+            sprite.position.y -= 5;
+            sprite.position.x += 0.5;
+            if (sprite.position.y < - height / 2) {
+                sprite.position.y = height / 2;
+            }
+            if (sprite.position.x > 1000) {
+                sprite.position.x = -1000
+            }
+        });
+
+        renderer.render(scene, camera);
+
+        requestAnimationFrame(render)
+    }
+
+    create()
+    render()
+
+    const controls = new THREE.OrbitControls(camera);
+</script>
+</body>
+</html>
